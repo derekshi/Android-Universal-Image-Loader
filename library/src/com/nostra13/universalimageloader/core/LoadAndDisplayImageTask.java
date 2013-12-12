@@ -35,6 +35,7 @@ import com.nostra13.universalimageloader.utils.L;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +71,7 @@ final class LoadAndDisplayImageTask implements Runnable {
 	private static final String LOG_TASK_CANCELLED_IMAGEAWARE_REUSED = "ImageAware is reused for another image. Task is cancelled. [%s]";
 	private static final String LOG_TASK_CANCELLED_IMAGEAWARE_COLLECTED = "ImageAware was collected by GC. Task is cancelled. [%s]";
 	private static final String LOG_TASK_INTERRUPTED = "Task was interrupted [%s]";
-
+	
 	private static final String ERROR_PRE_PROCESSOR_NULL = "Pre-processor returned null [%s]";
 	private static final String ERROR_POST_PROCESSOR_NULL = "Pre-processor returned null [%s]";
 	private static final String ERROR_PROCESSOR_FOR_DISC_CACHE_NULL = "Bitmap processor for disc cache returned null [%s]";
@@ -141,11 +142,16 @@ final class LoadAndDisplayImageTask implements Runnable {
 				checkTaskNotActual();
 				checkTaskInterrupted();
 
-				if (options.shouldPreProcess()) {
+				if (options.shouldPreProcess() 
+						&& !(loadedFrom == LoadedFrom.DISC_CACHE && options.shouldCachePreProcessedImageOnDisc())) {
 					log(LOG_PREPROCESS_IMAGE);
 					bmp = options.getPreProcessor().process(bmp);
 					if (bmp == null) {
 						L.e(ERROR_PRE_PROCESSOR_NULL, memoryCacheKey);
+					}else{
+						if (options.shouldCachePreProcessedImageOnDisc()){
+							cachePreProcessedImageOnDisc(bmp);
+						}
 					}
 				}
 
@@ -309,6 +315,26 @@ final class LoadAndDisplayImageTask implements Runnable {
 			return false;
 		}
 		return true;
+	}
+	
+	/** cache preprocessed image on disc */
+	private void cachePreProcessedImageOnDisc(Bitmap bmp){
+		File targetFile = getImageFileInDiscCache();
+		OutputStream os = null;
+		try{
+			os = new BufferedOutputStream(new FileOutputStream(targetFile), BUFFER_SIZE);
+			boolean savedSuccessfully = bmp.compress(Bitmap.CompressFormat.PNG, 0, os);
+			if (savedSuccessfully){
+				configuration.discCache.put(uri, targetFile);
+			}
+		}catch(FileNotFoundException ex){
+			L.e(ex);
+		}
+		finally{
+			if (os!=null){
+				IoUtils.closeSilently(os);
+			}
+		}
 	}
 
 	/** Decodes image file into Bitmap, resize it and save it back */

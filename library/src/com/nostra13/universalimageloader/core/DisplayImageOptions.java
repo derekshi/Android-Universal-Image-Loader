@@ -74,6 +74,7 @@ public final class DisplayImageOptions {
 	private final boolean resetViewBeforeLoading;
 	private final boolean cacheInMemory;
 	private final boolean cacheOnDisc;
+	private final boolean cachePreProcessedImageOnDisc;
 	private final ImageScaleType imageScaleType;
 	private final Options decodingOptions;
 	private final int delayBeforeLoading;
@@ -95,6 +96,7 @@ public final class DisplayImageOptions {
 		resetViewBeforeLoading = builder.resetViewBeforeLoading;
 		cacheInMemory = builder.cacheInMemory;
 		cacheOnDisc = builder.cacheOnDisc;
+		cachePreProcessedImageOnDisc = builder.cachePreProcessedImageOnDisc;
 		imageScaleType = builder.imageScaleType;
 		decodingOptions = builder.decodingOptions;
 		delayBeforeLoading = builder.delayBeforeLoading;
@@ -153,6 +155,10 @@ public final class DisplayImageOptions {
 
 	public boolean isCacheOnDisc() {
 		return cacheOnDisc;
+	}
+	
+	public boolean shouldCachePreProcessedImageOnDisc(){
+		return cachePreProcessedImageOnDisc;
 	}
 
 	public ImageScaleType getImageScaleType() {
@@ -221,6 +227,7 @@ public final class DisplayImageOptions {
 		private boolean resetViewBeforeLoading = false;
 		private boolean cacheInMemory = false;
 		private boolean cacheOnDisc = false;
+		private boolean cachePreProcessedImageOnDisc = false;
 		private ImageScaleType imageScaleType = ImageScaleType.IN_SAMPLE_POWER_OF_2;
 		private Options decodingOptions = new Options();
 		private int delayBeforeLoading = 0;
@@ -368,6 +375,12 @@ public final class DisplayImageOptions {
 			this.cacheOnDisc = cacheOnDisc;
 			return this;
 		}
+		
+		/** Sets whether preprocessed image should be cached on disc */
+		public Builder shouldCachePreProcessedImageOnDisc(boolean cachePreProcessedOnDisc) {
+			this.cachePreProcessedImageOnDisc = cachePreProcessedOnDisc;
+			return this;
+		}
 
 		/**
 		 * Sets {@linkplain ImageScaleType scale type} for decoding image. This parameter is used while define scale
@@ -472,6 +485,7 @@ public final class DisplayImageOptions {
 			resetViewBeforeLoading = options.resetViewBeforeLoading;
 			cacheInMemory = options.cacheInMemory;
 			cacheOnDisc = options.cacheOnDisc;
+			cachePreProcessedImageOnDisc = options.cachePreProcessedImageOnDisc;
 			imageScaleType = options.imageScaleType;
 			decodingOptions = options.decodingOptions;
 			delayBeforeLoading = options.delayBeforeLoading;
